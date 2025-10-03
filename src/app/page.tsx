@@ -1,7 +1,9 @@
 import Header from '@/app/components/Header';
 import Hero from '@/app/components/Hero';
 import CursorTrail from '@/app/components/effects/CursorTrail';
+import Zones from '@/app/components/Zones';
 import Pricing from '@/app/components/Pricing';
+import Contacts from './components/Contacts';
 
 /**
  * Главная страница Rave By Cayman
@@ -20,7 +22,9 @@ export default function Home() {
       <CursorTrail />
       <Header />
       <Hero />
+      <Zones />
       <Pricing />
+      <Contacts />
     </main>
   );
 }

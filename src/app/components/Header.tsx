@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LogIn, Gamepad2, Clock, Trophy, Zap, Sparkles } from 'lucide-react';
+import { Menu, X, LogIn, Gamepad2, Phone, Zap, Sparkles, TvMinimal } from 'lucide-react';
 
 /**
  * ОПТИМИЗИРОВАННЫЙ EPIC Premium Header
@@ -175,9 +175,9 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems: NavItem[] = useMemo(() => [
-    { label: 'Зоны клуба', href: '/', icon: <Gamepad2 size={18} /> },
-    { label: 'Тарифы', href: '/tariffs', icon: <Clock size={18} /> },
-    { label: 'Компьютеры', href: '/computers', icon: <Trophy size={18} /> },
+    { label: 'Зоны', href: '/zones', icon: <TvMinimal size={18} /> },
+    { label: 'Тарифы', href: '/tariffs', icon: <Gamepad2 size={18} /> },
+    { label: 'Контакты', href: '/contacts', icon: <Phone size={18} /> },
   ], []);
 
   // Оптимизированный обработчик скролла с throttling

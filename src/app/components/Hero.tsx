@@ -325,7 +325,7 @@ const Hero: React.FC = () => {
     },
     {
       icon: <Wifi size={56} />,
-      title: 'Молния',
+      title: 'Реактивный интернет',
       desc: '1000 Мбит/с - забудь о лагах навсегда',
     },
     {
@@ -499,47 +499,6 @@ const Hero: React.FC = () => {
               ))}
             </div>
           </motion.div>
-
-          {/* Зоны клуба */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="mb-20"
-          >
-            <h3 className="font-orbitron text-3xl md:text-4xl font-bold text-center mb-12 text-white">
-              Зоны клуба
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {zones.map((zone, index) => (
-                <motion.div
-                  key={zone.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.6 }}
-                  whileHover={{ scale: 1.05, y: -10 }}
-                  viewport={{ once: true }}
-                  className={`glass p-8 rounded-2xl border-2 ${zone.color === 'cyan'
-                    ? 'border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_40px_rgba(34,211,238,0.5)]'
-                    : 'border-blue-400/30 hover:border-blue-400 hover:shadow-[0_0_40px_rgba(59,130,246,0.5)]'
-                    } transition-all duration-300 cursor-pointer group`}
-                >
-                  <div className={`${zone.color === 'cyan' ? 'text-cyan-400' : 'text-blue-400'
-                    } mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    {zone.icon}
-                  </div>
-                  <h4 className="font-orbitron text-2xl font-bold text-white mb-2">
-                    {zone.title}
-                  </h4>
-                  <p className="font-rajdhani text-gray-400">
-                    {zone.desc}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
           {/* Features */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -573,75 +532,6 @@ const Hero: React.FC = () => {
                   </p>
                 </motion.div>
               ))}
-            </div>
-          </motion.div>
-
-          {/* CTA Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <div className="glass p-12 md:p-16 rounded-3xl border-2 border-cyan-400/30 hover:border-cyan-400 transition-all duration-300 max-w-4xl mx-auto hover:shadow-[0_0_60px_rgba(34,211,238,0.4)]">
-              <h3 className="font-orbitron text-4xl md:text-5xl font-black mb-6">
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent">
-                  Готов к игре?
-                </span>
-              </h3>
-              <p className="font-rajdhani text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto">
-                Забронируй место прямо сейчас и получи <span className="text-cyan-400 font-bold">2 часа в подарок</span> при первом посещении!
-              </p>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <motion.button
-                  whileHover={{ scale: 1.08, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative px-12 py-5 font-rajdhani font-black text-2xl text-white bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 rounded-2xl shadow-[0_0_40px_rgba(34,211,238,0.6)] hover:shadow-[0_0_70px_rgba(34,211,238,0.9)] transition-all duration-300 overflow-hidden group"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-3">
-                    <Zap size={28} className="animate-pulse" />
-                    Забронировать сейчас
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-                  </div>
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.08, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative px-12 py-5 font-rajdhani font-black text-2xl text-white border-3 border-cyan-400 rounded-2xl hover:bg-cyan-400/20 transition-all duration-300 group overflow-hidden shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)]"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-3">
-                    <Clock size={28} />
-                    Посмотреть тарифы
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-cyan-400/30 to-cyan-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                </motion.button>
-              </div>
-
-              {/* Дополнительная информация */}
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                {additionalInfo.map((item, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
-                    viewport={{ once: true }}
-                    className="flex flex-col items-center gap-3"
-                  >
-                    <div className="text-cyan-400">
-                      {item.icon}
-                    </div>
-                    <p className="font-rajdhani text-sm text-gray-400">
-                      {item.text}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
             </div>
           </motion.div>
         </div>

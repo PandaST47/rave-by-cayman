@@ -2,9 +2,9 @@
 
 @theme {
   /* Кастомные цвета */
-  --color-primary: #ff0000;
-  --color-secondary: #dc143c;
-  --color-accent: #ff4444;
+  --color-primary: #0080ff;
+  --color-secondary: #0066cc;
+  --color-accent: #3399ff;
   --color-dark: #0a0a0a;
   --color-surface: #1a1a1a;
   --color-surface-light: #2a2a2a;
@@ -15,9 +15,9 @@
   --font-family-inter: var(--font-inter), sans-serif;
   
   /* Тени свечения */
-  --shadow-glow-red: 0 0 20px rgb(255 0 0 / 0.5);
-  --shadow-glow-red-lg: 0 0 40px rgb(255 0 0 / 0.6);
-  --shadow-glow-red-xl: 0 0 60px rgb(255 0 0 / 0.7);
+  --shadow-glow-red: 0 0 20px rgb(0 128 255 / 0.5);
+  --shadow-glow-red-lg: 0 0 40px rgb(0 128 255 / 0.6);
+  --shadow-glow-red-xl: 0 0 60px rgb(0 128 255 / 0.7);
   
   /* Анимации */
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
@@ -27,8 +27,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgb(255 0 0 / 0.5); }
-  50% { box-shadow: 0 0 40px rgb(255 0 0 / 0.8); }
+  0%, 100% { box-shadow: 0 0 20px rgb(0 128 255 / 0.5); }
+  50% { box-shadow: 0 0 40px rgb(0 128 255 / 0.8); }
 }
 
 @keyframes glitch {
@@ -63,15 +63,15 @@
 
 @layer utilities {
   .text-glow {
-    text-shadow: 0 0 10px rgb(255 0 0 / 0.8),
-                 0 0 20px rgb(255 0 0 / 0.6),
-                 0 0 30px rgb(255 0 0 / 0.4);
+    text-shadow: 0 0 10px rgb(0 128 255 / 0.8),
+                 0 0 20px rgb(0 128 255 / 0.6),
+                 0 0 30px rgb(0 128 255 / 0.4);
   }
   
   .glass {
     background: rgb(26 26 26 / 0.7);
     backdrop-filter: blur(10px);
-    border: 1px solid rgb(255 0 0 / 0.2);
+    border: 1px solid rgb(0 128 255 / 0.2);
   }
   
   .scanline {
@@ -89,7 +89,7 @@
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      rgb(255 0 0 / 0.1) 50%,
+      rgb(0 128 255 / 0.1) 50%,
       transparent 100%
     );
     animation: scan 2s linear infinite;
