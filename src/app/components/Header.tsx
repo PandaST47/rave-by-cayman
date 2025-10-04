@@ -6,12 +6,12 @@ import { Menu, X, LogIn, Gamepad2, Phone, Zap, Sparkles, TvMinimal } from 'lucid
 
 /**
  * ОПТИМИЗИРОВАННЫЙ EPIC Premium Header
- * Улучшения производительности:
- * - Мемоизация компонентов и колбэков
- * - Throttling для scroll и mousemove событий
- * - Оптимизированные анимации
- * - Удаление неиспользуемых переменных
- * - Навигация по якорям (anchor links)
+ * Улучшения:
+ * - Оптимизированная мемоизация и колбэки
+ * - Улучшенный throttling с requestAnimationFrame
+ * - Адаптивная верстка для всех экранов
+ * - Оптимизированные анимации и переходы
+ * - Якорная навигация с smooth scroll
  */
 
 interface NavItem {
@@ -20,34 +20,36 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-// Throttle функция для оптимизации событий
+// Оптимизированный throttle с использованием RAF
 const throttle = (func: Function, delay: number) => {
-  let timeoutId: NodeJS.Timeout | null = null;
+  let rafId: number | null = null;
   let lastExecTime = 0;
   
   return (...args: any[]) => {
     const currentTime = Date.now();
     
-    if (currentTime - lastExecTime < delay) {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        lastExecTime = currentTime;
-        func(...args);
-      }, delay - (currentTime - lastExecTime));
-    } else {
+    if (currentTime - lastExecTime >= delay) {
       lastExecTime = currentTime;
       func(...args);
+    } else {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (Date.now() - lastExecTime >= delay) {
+          lastExecTime = Date.now();
+          func(...args);
+        }
+      });
     }
   };
 };
 
-// Функция для плавного скролла к секции
-const scrollToSection = (href: string) => {
+// Функция плавного скролла к секции
+const scrollToSection = (href: string): void => {
   const id = href.replace('#', '');
   const element = document.getElementById(id);
   
   if (element) {
-    const headerOffset = 100; // Отступ для фиксированного хедера
+    const headerOffset = 100;
     const elementPosition = element.getBoundingClientRect().top;
     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -64,11 +66,16 @@ const Logo = memo(() => (
     whileHover={{ scale: 1.08 }}
     whileTap={{ scale: 0.95 }}
     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-    className="relative cursor-pointer group"
+    className="relative group"
   >
     <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    <div className="relative h-15 w-18 group-hover:drop-shadow-[0_0_30px_rgba(59,130,246,0.8)] transition-all duration-300">
-      <img src="/cayman_logo.png" alt="RAVE BY CAYMAN" loading="lazy" />
+    <div className="relative h-12 w-16 sm:h-14 sm:w-18 lg:h-15 lg:w-20 group-hover:drop-shadow-[0_0_30px_rgba(59,130,246,0.8)] transition-all duration-300">
+      <img 
+        src="/cayman_logo.png" 
+        alt="RAVE BY CAYMAN" 
+        loading="lazy"
+        className="w-full h-full object-contain"
+      />
     </div>
     <motion.div
       animate={{ rotate: 360 }}
@@ -89,7 +96,7 @@ const NavButton = memo(({ item }: { item: NavItem }) => (
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => scrollToSection(item.href)}
-      className="relative px-6 py-3 font-rajdhani font-bold text-white hover:text-blue-400 transition-all duration-300 flex items-center space-x-2 group"
+      className="relative px-4 lg:px-6 py-2.5 lg:py-3 font-rajdhani font-bold text-sm lg:text-base text-white hover:text-blue-400 transition-all duration-300 flex items-center space-x-2 group"
     >
       <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/20 rounded-lg transition-all duration-300" />
       <span className="relative z-10 transition-all duration-300">
@@ -112,11 +119,11 @@ NavButton.displayName = 'NavButton';
 
 // Мемоизированные CTA кнопки
 const CTAButtons = memo(() => (
-  <div className="hidden md:flex items-center space-x-4">
+  <div className="hidden lg:flex items-center space-x-3 xl:space-x-4">
     <motion.button
       whileHover={{ scale: 1.08, y: -2 }}
       whileTap={{ scale: 0.95 }}
-      className="relative px-6 py-2.5 font-rajdhani font-bold text-white border-2 border-blue-400/50 rounded-xl overflow-hidden group hover:border-blue-400 transition-all duration-300 bg-blue-500/10 backdrop-blur-sm"
+      className="relative px-4 xl:px-6 py-2 xl:py-2.5 font-rajdhani font-bold text-sm xl:text-base text-white border-2 border-blue-400/50 rounded-xl overflow-hidden group hover:border-blue-400 transition-all duration-300 bg-blue-500/10 backdrop-blur-sm"
     >
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-500/40 to-blue-600/0"
@@ -124,7 +131,7 @@ const CTAButtons = memo(() => (
         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
       />
       <span className="relative z-10 flex items-center space-x-2 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
-        <LogIn size={18} />
+        <LogIn size={16} className="xl:w-[18px] xl:h-[18px]" />
         <span>Вход</span>
       </span>
       <div className="absolute top-0 left-0 w-2 h-2 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-sm" />
@@ -134,7 +141,7 @@ const CTAButtons = memo(() => (
     <motion.button
       whileHover={{ scale: 1.08, y: -3 }}
       whileTap={{ scale: 0.95 }}
-      className="relative px-8 py-2.5 font-rajdhani font-black text-white rounded-xl overflow-hidden group"
+      className="relative px-6 xl:px-8 py-2 xl:py-2.5 font-rajdhani font-black text-sm xl:text-base text-white rounded-xl overflow-hidden group"
       style={{
         background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #2563eb 100%)',
         boxShadow: '0 0 30px rgba(59,130,246,0.5), inset 0 0 20px rgba(255,255,255,0.1)',
@@ -157,7 +164,7 @@ const CTAButtons = memo(() => (
         className="absolute inset-0 rounded-xl"
       />
       <span className="relative z-10 flex items-center space-x-2">
-        <Zap size={18} className="animate-pulse" />
+        <Zap size={16} className="xl:w-[18px] xl:h-[18px] animate-pulse" />
         <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">Регистрация</span>
       </span>
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -188,6 +195,177 @@ const CTAButtons = memo(() => (
 
 CTAButtons.displayName = 'CTAButtons';
 
+// Мемоизированная кнопка мобильного меню
+const MobileMenuButton = memo(({ 
+  isOpen, 
+  onClick 
+}: { 
+  isOpen: boolean; 
+  onClick: () => void;
+}) => (
+  <motion.button
+    whileTap={{ scale: 0.9 }}
+    onClick={onClick}
+    className="lg:hidden relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-blue-500/20 border-2 border-blue-400/40 hover:border-blue-400 transition-all backdrop-blur-sm"
+    style={{
+      boxShadow: '0 0 20px rgba(59,130,246,0.3)',
+    }}
+    aria-label={isOpen ? 'Закрыть меню' : 'Открыть меню'}
+  >
+    <AnimatePresence mode="wait">
+      {isOpen ? (
+        <motion.div
+          key="close"
+          initial={{ rotate: -90, opacity: 0 }}
+          animate={{ rotate: 0, opacity: 1 }}
+          exit={{ rotate: 90, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <X className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,1)]" size={20} />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="menu"
+          initial={{ rotate: 90, opacity: 0 }}
+          animate={{ rotate: 0, opacity: 1 }}
+          exit={{ rotate: -90, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Menu className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,1)]" size={20} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </motion.button>
+));
+
+MobileMenuButton.displayName = 'MobileMenuButton';
+
+// Мемоизированное мобильное меню
+const MobileMenu = memo(({ 
+  navItems, 
+  onNavClick, 
+  onClose 
+}: { 
+  navItems: NavItem[];
+  onNavClick: (href: string) => void;
+  onClose: () => void;
+}) => (
+  <>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={onClose}
+      className="fixed inset-0 bg-black/90 backdrop-blur-md z-40 lg:hidden"
+    />
+
+    <motion.div
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className="fixed top-16 sm:top-20 right-0 bottom-0 w-full max-w-sm bg-black/80 backdrop-blur-2xl border-l-2 border-blue-500/30 z-40 lg:hidden overflow-y-auto"
+      style={{
+        boxShadow: '-10px 0 50px rgba(59,130,246,0.3)',
+      }}
+    >
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="space-y-2 sm:space-y-3">
+          {navItems.map((item, index) => (
+            <motion.div
+              key={item.href}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <button
+                onClick={() => onNavClick(item.href)}
+                className="w-full px-4 sm:px-5 py-3 sm:py-4 flex items-center space-x-3 text-left font-rajdhani font-bold text-white hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/20 hover:border-blue-400/50 rounded-xl transition-all duration-300 group"
+                style={{
+                  boxShadow: '0 0 20px rgba(59,130,246,0.2)',
+                }}
+              >
+                <span className="group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,1)] transition-all">
+                  {item.icon}
+                </span>
+                <span className="group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.8)] transition-all">
+                  {item.label}
+                </span>
+              </button>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.3 }}
+          className="h-[2px] bg-gradient-to-r from-transparent via-blue-400 to-transparent"
+        />
+
+        <div className="space-y-3 sm:space-y-4">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="w-full px-5 sm:px-6 py-3 sm:py-4 font-rajdhani font-bold text-white border-2 border-blue-400/50 rounded-xl hover:border-blue-400 transition-all flex items-center justify-center space-x-2 bg-blue-500/10 backdrop-blur-sm"
+            style={{
+              boxShadow: '0 0 25px rgba(59,130,246,0.3)',
+            }}
+          >
+            <LogIn size={20} />
+            <span>Вход</span>
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="w-full px-5 sm:px-6 py-3 sm:py-4 font-rajdhani font-black text-white rounded-xl transition-all flex items-center justify-center space-x-2 relative overflow-hidden group"
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #2563eb 100%)',
+              boxShadow: '0 0 35px rgba(59,130,246,0.6)',
+            }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              animate={{ x: ['-200%', '200%'] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <Zap size={20} className="relative z-10 animate-pulse" />
+            <span className="relative z-10">Регистрация</span>
+          </motion.button>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="p-4 sm:p-5 bg-blue-500/10 border-2 border-blue-500/30 rounded-xl backdrop-blur-sm"
+          style={{
+            boxShadow: '0 0 25px rgba(59,130,246,0.2)',
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-300 font-rajdhani font-medium">
+              Онлайн игроков
+            </span>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full pulse-dot" />
+              <span className="font-rajdhani font-black text-blue-400 text-xl sm:text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,1)]">
+                42
+              </span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  </>
+));
+
+MobileMenu.displayName = 'MobileMenu';
+
 const Header: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -199,7 +377,7 @@ const Header: React.FC = () => {
     { label: 'Контакты', href: '#contacts', icon: <Phone size={18} /> },
   ], []);
 
-  // Оптимизированный обработчик скролла с throttling
+  // Оптимизированный обработчик скролла
   const handleScroll = useCallback(
     throttle(() => {
       const scrollPosition = window.scrollY;
@@ -211,6 +389,7 @@ const Header: React.FC = () => {
         setIsScrolled(scrollPosition > windowHeight * 0.85);
       } else {
         setIsVisible(false);
+        setIsScrolled(false);
       }
     }, 100),
     []
@@ -225,7 +404,7 @@ const Header: React.FC = () => {
   // Закрытие мобильного меню при resize
   useEffect(() => {
     const handleResize = throttle(() => {
-      if (window.innerWidth > 768) {
+      if (window.innerWidth >= 1024) {
         setIsMobileMenuOpen(false);
       }
     }, 200);
@@ -233,6 +412,18 @@ const Header: React.FC = () => {
     window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Блокировка скролла при открытом мобильном меню
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(prev => !prev);
@@ -261,20 +452,21 @@ const Header: React.FC = () => {
               stiffness: 100,
               opacity: { duration: 0.3 }
             }}
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-              ? 'bg-black/60 backdrop-blur-2xl border-b-2 border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.3)]'
-              : 'bg-black/40 backdrop-blur-xl border-b border-blue-500/20'
-              }`}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+              isScrolled
+                ? 'bg-black/60 backdrop-blur-2xl border-b-2 border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.3)]'
+                : 'bg-black/40 backdrop-blur-xl border-b border-blue-500/20'
+            }`}
           >
             <motion.div
               className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent glow-line"
             />
 
-            <nav className="container mx-auto px-4 lg:px-8">
-              <div className="flex items-center justify-between h-20">
+            <nav className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+              <div className="flex items-center justify-between h-16 sm:h-20">
                 <Logo />
 
-                <div className="hidden md:flex items-center space-x-2">
+                <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
                   {navItems.map((item) => (
                     <NavButton key={item.href} item={item} />
                   ))}
@@ -282,38 +474,10 @@ const Header: React.FC = () => {
 
                 <CTAButtons />
 
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
+                <MobileMenuButton 
+                  isOpen={isMobileMenuOpen} 
                   onClick={toggleMobileMenu}
-                  className="md:hidden relative w-12 h-12 flex items-center justify-center rounded-xl bg-blue-500/20 border-2 border-blue-400/40 hover:border-blue-400 transition-all backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 0 20px rgba(59,130,246,0.3)',
-                  }}
-                >
-                  <AnimatePresence mode="wait">
-                    {isMobileMenuOpen ? (
-                      <motion.div
-                        key="close"
-                        initial={{ rotate: -90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: 90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <X className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,1)]" size={24} />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="menu"
-                        initial={{ rotate: 90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: -90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Menu className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,1)]" size={24} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
+                />
               </div>
             </nav>
 
@@ -334,206 +498,13 @@ const Header: React.FC = () => {
 
       <AnimatePresence>
         {isMobileMenuOpen && isVisible && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={closeMobileMenu}
-              className="fixed inset-0 bg-black/90 backdrop-blur-md z-40 md:hidden"
-            />
-
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-20 right-0 bottom-0 w-80 bg-black/80 backdrop-blur-2xl border-l-2 border-blue-500/30 z-40 md:hidden overflow-y-auto"
-              style={{
-                boxShadow: '-10px 0 50px rgba(59,130,246,0.3)',
-              }}
-            >
-              <div className="p-6 space-y-6">
-                <div className="space-y-3">
-                  {navItems.map((item, index) => (
-                    <motion.div
-                      key={item.href}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <button
-                        onClick={() => handleNavClick(item.href)}
-                        className="w-full px-5 py-4 flex items-center space-x-3 text-left font-rajdhani font-bold text-white hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/20 hover:border-blue-400/50 rounded-xl transition-all duration-300 group"
-                        style={{
-                          boxShadow: '0 0 20px rgba(59,130,246,0.2)',
-                        }}
-                      >
-                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,1)] transition-all">
-                          {item.icon}
-                        </span>
-                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.8)] transition-all">
-                          {item.label}
-                        </span>
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="h-[2px] bg-gradient-to-r from-transparent via-blue-400 to-transparent"
-                />
-
-                <div className="space-y-4">
-                  <motion.button
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="w-full px-6 py-4 font-rajdhani font-bold text-white border-2 border-blue-400/50 rounded-xl hover:border-blue-400 transition-all flex items-center justify-center space-x-2 bg-blue-500/10 backdrop-blur-sm"
-                    style={{
-                      boxShadow: '0 0 25px rgba(59,130,246,0.3)',
-                    }}
-                  >
-                    <LogIn size={20} />
-                    <span>Вход</span>
-                  </motion.button>
-
-                  <motion.button
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="w-full px-6 py-4 font-rajdhani font-black text-white rounded-xl transition-all flex items-center justify-center space-x-2 relative overflow-hidden group"
-                    style={{
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #2563eb 100%)',
-                      boxShadow: '0 0 35px rgba(59,130,246,0.6)',
-                    }}
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                      animate={{ x: ['-200%', '200%'] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    <Zap size={20} className="relative z-10 animate-pulse" />
-                    <span className="relative z-10">Регистрация</span>
-                  </motion.button>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="p-5 bg-blue-500/10 border-2 border-blue-500/30 rounded-xl backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 0 25px rgba(59,130,246,0.2)',
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300 font-rajdhani font-medium">Онлайн игроков</span>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-green-500 rounded-full pulse-dot" />
-                      <span className="font-rajdhani font-black text-blue-400 text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,1)]">
-                        42
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
-          </>
+          <MobileMenu 
+            navItems={navItems}
+            onNavClick={handleNavClick}
+            onClose={closeMobileMenu}
+          />
         )}
       </AnimatePresence>
-
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;800&display=swap');
-
-        .font-rajdhani {
-          font-family: 'Rajdhani', sans-serif;
-        }
-
-        /* Оптимизированные CSS анимации */
-        @keyframes glowPulse {
-          0%, 100% { 
-            opacity: 0.3;
-            box-shadow: 0 0 20px rgba(59,130,246,0.3);
-          }
-          50% { 
-            opacity: 0.8;
-            box-shadow: 0 0 40px rgba(59,130,246,0.6);
-          }
-        }
-
-        @keyframes scanLine {
-          from { transform: translateX(-100%); }
-          to { transform: translateX(100%); }
-        }
-
-        @keyframes pulseDot {
-          0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 0 10px rgba(34,197,94,0.5);
-          }
-          50% {
-            transform: scale(1.3);
-            box-shadow: 0 0 20px rgba(34,197,94,0.8);
-          }
-        }
-
-        .glow-line {
-          animation: glowPulse 3s ease-in-out infinite;
-        }
-
-        .scan-line {
-          animation: scanLine 2s linear infinite;
-        }
-
-        .pulse-dot {
-          animation: pulseDot 2s ease-in-out infinite;
-        }
-
-        /* Оптимизированный скроллбар */
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: #3b82f6 #000;
-        }
-
-        *::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        *::-webkit-scrollbar-track {
-          background: #000;
-        }
-
-        *::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
-          border-radius: 10px;
-        }
-
-        *::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #60a5fa, #2563eb);
-        }
-
-        /* Оптимизация для производительности */
-        * {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* GPU ускорение для анимаций */
-        .group, [class*="motion-"] {
-          transform: translateZ(0);
-          will-change: transform;
-        }
-
-        /* Плавный скролл для всей страницы */
-        html {
-          scroll-behavior: smooth;
-        }
-      `}</style>
     </>
   );
 };

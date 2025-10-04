@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* ============================================
+   CSS ПЕРЕМЕННЫЕ
+   ============================================ */
 @theme {
   /* Кастомные цвета */
   --color-primary: #0080ff;
@@ -10,70 +13,214 @@
   --color-surface-light: #2a2a2a;
   
   /* Шрифты */
-  --font-family-orbitron: var(--font-orbitron), sans-serif;
-  --font-family-rajdhani: var(--font-rajdhani), sans-serif;
-  --font-family-inter: var(--font-inter), sans-serif;
+  --font-family-orbitron: 'Orbitron', sans-serif;
+  --font-family-rajdhani: 'Rajdhani', sans-serif;
+  --font-family-inter: 'Inter', sans-serif;
   
   /* Тени свечения */
-  --shadow-glow-red: 0 0 20px rgb(0 128 255 / 0.5);
-  --shadow-glow-red-lg: 0 0 40px rgb(0 128 255 / 0.6);
-  --shadow-glow-red-xl: 0 0 60px rgb(0 128 255 / 0.7);
-  
-  /* Анимации */
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-glitch: glitch 0.5s ease-in-out infinite;
-  --animate-float: float 3s ease-in-out infinite;
-  --animate-scan: scan 2s linear infinite;
+  --shadow-glow-cyan: 0 0 20px rgba(34, 211, 238, 0.5);
+  --shadow-glow-cyan-lg: 0 0 40px rgba(34, 211, 238, 0.6);
+  --shadow-glow-cyan-xl: 0 0 60px rgba(34, 211, 238, 0.7);
+  --shadow-glow-blue: 0 0 20px rgba(59, 130, 246, 0.5);
+  --shadow-glow-blue-lg: 0 0 40px rgba(59, 130, 246, 0.6);
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgb(0 128 255 / 0.5); }
-  50% { box-shadow: 0 0 40px rgb(0 128 255 / 0.8); }
+/* ============================================
+   KEYFRAMES АНИМАЦИИ
+   ============================================ */
+
+/* Gradient Shift - для Hero текста */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
-@keyframes glitch {
-  0%, 100% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
+/* Pulse Glow - для свечения элементов */
+@keyframes pulseGlow {
+  0%, 100% { 
+    opacity: 0.3;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% { 
+    opacity: 0.8;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+  }
 }
 
+/* Scan Line - для сканирующего эффекта */
+@keyframes scanLine {
+  from { 
+    transform: translateX(-100%); 
+  }
+  to { 
+    transform: translateX(100%); 
+  }
+}
+
+/* Pulse Dot - для индикаторов */
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    transform: scale(1.3);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+  }
+}
+
+/* Float - для плавающих элементов */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-20px); 
+  }
 }
 
+/* Glitch - для глитч эффекта */
+@keyframes glitch {
+  0%, 100% { 
+    transform: translate(0); 
+  }
+  20% { 
+    transform: translate(-2px, 2px); 
+  }
+  40% { 
+    transform: translate(-2px, -2px); 
+  }
+  60% { 
+    transform: translate(2px, 2px); 
+  }
+  80% { 
+    transform: translate(2px, -2px); 
+  }
+}
+
+/* Particles Float - для фоновых частиц */
+@keyframes particlesFloat {
+  0%, 100% {
+    background-position: 0% 0%, 50% 50%, 25% 75%, 75% 25%, 10% 90%, 90% 10%, 40% 60%;
+  }
+  50% {
+    background-position: 100% 100%, 25% 75%, 75% 25%, 10% 90%, 90% 10%, 40% 60%, 60% 40%;
+  }
+}
+
+/* Scan - вертикальное сканирование */
 @keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
+  0% { 
+    transform: translateY(-100%); 
+  }
+  100% { 
+    transform: translateY(100%); 
+  }
 }
 
+/* ============================================
+   BASE СТИЛИ
+   ============================================ */
 @layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--color-dark);
     color: white;
     font-family: var(--font-family-inter);
+    overflow-x: hidden;
   }
   
-  html {
-    scroll-behavior: smooth;
+  /* Кастомный скроллбар */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #22d3ee #000;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #000;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #22d3ee, #3b82f6);
+    border-radius: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #06b6d4, #2563eb);
   }
 }
 
+/* ============================================
+   UTILITY КЛАССЫ
+   ============================================ */
 @layer utilities {
-  .text-glow {
-    text-shadow: 0 0 10px rgb(0 128 255 / 0.8),
-                 0 0 20px rgb(0 128 255 / 0.6),
-                 0 0 30px rgb(0 128 255 / 0.4);
+  /* Шрифты */
+  .font-orbitron {
+    font-family: var(--font-family-orbitron);
   }
-  
+
+  .font-rajdhani {
+    font-family: var(--font-family-rajdhani);
+  }
+
+  .font-inter {
+    font-family: var(--font-family-inter);
+  }
+
+  /* Glass эффект - переиспользуемый */
   .glass {
-    background: rgb(26 26 26 / 0.7);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
-    border: 1px solid rgb(0 128 255 / 0.2);
+    -webkit-backdrop-filter: blur(10px);
   }
-  
+
+  /* Text Glow */
+  .text-glow {
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.8),
+                 0 0 20px rgba(34, 211, 238, 0.6),
+                 0 0 30px rgba(34, 211, 238, 0.4);
+  }
+
+  .text-glow-blue {
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.8),
+                 0 0 20px rgba(59, 130, 246, 0.6),
+                 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+
+  /* Radial Gradient Background */
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+
+  /* Hero Text Gradient с анимацией */
+  .hero-text-gradient {
+    background: linear-gradient(135deg, #67e8f9 0%, #3b82f6 50%, #67e8f9 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 6s ease infinite;
+    filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.6)) 
+            drop-shadow(0 0 40px rgba(34, 211, 238, 0.4));
+  }
+
+  /* Scanline эффекты */
   .scanline {
     position: relative;
     overflow: hidden;
@@ -89,36 +236,113 @@
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      rgb(0 128 255 / 0.1) 50%,
+      rgba(34, 211, 238, 0.1) 50%,
       transparent 100%
     );
     animation: scan 2s linear infinite;
     pointer-events: none;
   }
-}
 
-.particles-overlay {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    radial-gradient(2px 2px at 20% 30%, rgba(34, 211, 238, 0.6), transparent),
-    radial-gradient(2px 2px at 60% 70%, rgba(59, 130, 246, 0.5), transparent),
-    radial-gradient(1px 1px at 50% 50%, rgba(34, 211, 238, 0.4), transparent),
-    radial-gradient(1px 1px at 80% 10%, rgba(147, 197, 253, 0.5), transparent),
-    radial-gradient(2px 2px at 90% 60%, rgba(34, 211, 238, 0.6), transparent),
-    radial-gradient(1px 1px at 15% 80%, rgba(59, 130, 246, 0.4), transparent),
-    radial-gradient(1px 1px at 40% 20%, rgba(34, 211, 238, 0.5), transparent);
-  background-size: 200% 200%, 200% 200%, 300% 300%, 250% 250%, 200% 200%, 300% 300%, 250% 250%;
-  background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
-  animation: particles-float 20s ease-in-out infinite;
-  opacity: 0.6;
-}
-
-@keyframes particles-float {
-  0%, 100% {
-    background-position: 0% 0%, 50% 50%, 25% 75%, 75% 25%, 10% 90%, 90% 10%, 40% 60%;
+  /* Статичный scanline (без анимации для производительности) */
+  .scanline-static {
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      rgba(34, 211, 238, 0.03) 1px,
+      transparent 2px,
+      transparent 4px
+    );
   }
-  50% {
-    background-position: 100% 100%, 25% 75%, 75% 25%, 10% 90%, 90% 10%, 40% 60%, 60% 40%;
+
+  /* Particles overlay */
+  .particles-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(2px 2px at 20% 30%, rgba(34, 211, 238, 0.6), transparent),
+      radial-gradient(2px 2px at 60% 70%, rgba(59, 130, 246, 0.5), transparent),
+      radial-gradient(1px 1px at 50% 50%, rgba(34, 211, 238, 0.4), transparent),
+      radial-gradient(1px 1px at 80% 10%, rgba(147, 197, 253, 0.5), transparent),
+      radial-gradient(2px 2px at 90% 60%, rgba(34, 211, 238, 0.6), transparent),
+      radial-gradient(1px 1px at 15% 80%, rgba(59, 130, 246, 0.4), transparent),
+      radial-gradient(1px 1px at 40% 20%, rgba(34, 211, 238, 0.5), transparent);
+    background-size: 200% 200%, 200% 200%, 300% 300%, 250% 250%, 200% 200%, 300% 300%, 250% 250%;
+    background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+    animation: particlesFloat 20s ease-in-out infinite;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  /* Animation классы */
+  .glow-line {
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  .scan-line {
+    animation: scanLine 2s linear infinite;
+  }
+
+  .pulse-dot {
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glitch {
+    animation: glitch 0.5s ease-in-out infinite;
+  }
+}
+
+/* ============================================
+   ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ
+   ============================================ */
+
+/* GPU ускорение для анимированных элементов */
+.group,
+[class*="motion-"],
+canvas {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Отключение анимаций для prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .hero-text-gradient,
+  .glow-line,
+  .scan-line,
+  .pulse-dot,
+  .animate-float,
+  .animate-glitch,
+  .particles-overlay {
+    animation: none;
+  }
+}
+
+/* ============================================
+   КОМПОНЕНТ-СПЕЦИФИЧНЫЕ СТИЛИ
+   ============================================ */
+
+/* Canvas оптимизация */
+canvas {
+  image-rendering: auto;
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Фикс для overflow в мобильных */
+@media (max-width: 768px) {
+  body {
+    position: relative;
+    overflow-x: hidden;
   }
 }
