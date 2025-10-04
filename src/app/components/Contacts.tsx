@@ -79,7 +79,7 @@ const Contacts = () => {
     ];
 
     return (
-        <div className="relative bg-gradient-to-b from-black via-gray-900 to-black py-20 px-4 overflow-hidden">
+        <div id='contacts' className="relative bg-gradient-to-b from-black via-gray-900 to-black py-20 px-4 overflow-hidden">
             {/* Animated background particles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {[...Array(30)].map((_, i) => (

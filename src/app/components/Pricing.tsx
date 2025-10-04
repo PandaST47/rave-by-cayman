@@ -15,6 +15,9 @@ import {
     Plus,
     Gift
 } from 'lucide-react';
+import { GiConsoleController, GiPc  } from "react-icons/gi";
+import { BsHeadsetVr  } from 'react-icons/bs';
+
 
 interface TariffZone {
     id: string;
@@ -42,7 +45,7 @@ const Pricing = () => {
         {
             id: 'vr',
             name: 'VR Зона',
-            icon: <Gamepad2 size={40} />,
+            icon: <BsHeadsetVr size={40} />,
             description: 'Oculus Quest 3 - виртуальная реальность нового поколения',
             totalSlots: 10,
             occupiedSlots: 3,
@@ -57,7 +60,7 @@ const Pricing = () => {
         {
             id: 'ps5',
             name: 'PS5 Зона',
-            icon: <Gamepad2 size={40} />,
+            icon: <GiConsoleController size={40} />,
             description: '15 консолей PlayStation 5 с эксклюзивными играми',
             totalSlots: 15,
             occupiedSlots: 8,
@@ -72,7 +75,7 @@ const Pricing = () => {
         {
             id: 'pc-basic',
             name: 'ПК Зона - Базовый',
-            icon: <Monitor size={40} />,
+            icon: <GiPc size={40} />,
             description: 'RTX 3060 Ti, i5-12400F, 16GB RAM, 144Hz',
             totalSlots: 20,
             occupiedSlots: 12,
@@ -164,7 +167,7 @@ const Pricing = () => {
     };
 
     return (
-        <div id='#tariffs' className="relative bg-gradient-to-b from-black via-gray-900 to-black py-20 px-4">
+        <div id='tariffs' className="relative bg-gradient-to-b from-black via-gray-900 to-black py-20 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <motion.div

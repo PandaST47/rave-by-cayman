@@ -19,6 +19,9 @@ import {
     Camera,
     Play
 } from 'lucide-react';
+import { BsHeadsetVr  } from 'react-icons/bs';
+import { GiPc  } from "react-icons/gi";
+import { RiVipLine, RiPlaystationLine  } from "react-icons/ri";
 
 interface Zone {
     id: string;
@@ -42,12 +45,12 @@ const Zones = () => {
         {
             id: 'vr',
             name: 'VR Зона',
-            icon: <Gamepad2 size={48} />,
+            icon: <BsHeadsetVr size={48} />,
             tagline: 'Погружение в виртуальную реальность',
             description: 'Испытай невероятные ощущения с Oculus Quest 3. Новейшие VR-игры, симуляторы и виртуальные миры ждут тебя.',
             features: ['Oculus Quest 3', 'Беспроводная свобода', 'AAA VR-игры', 'Симуляторы'],
             capacity: '10 зон',
-            imageUrl: '/zones/vr-zone.jpg',
+            imageUrl: '/zones/vr-zone.png',
             gradient: 'from-cyan-500 via-blue-600 to-purple-600',
             accentColor: 'cyan',
             glowColor: 'rgba(34,211,238,0.4)'
@@ -55,12 +58,12 @@ const Zones = () => {
         {
             id: 'ps5',
             name: 'PS5 Зона',
-            icon: <Gamepad2 size={48} />,
+            icon: <RiPlaystationLine   size={48} />,
             tagline: 'Консольный гейминг нового поколения',
             description: '15 игровых станций PlayStation 5 с эксклюзивными играми. Мощность новой генерации консолей в твоих руках.',
             features: ['PlayStation 5', '4K 120Hz дисплеи', 'Эксклюзивы PS5', 'DualSense контроллеры'],
             capacity: '15 мест',
-            imageUrl: '/zones/ps5-zone.jpg',
+            imageUrl: '/zones/ps5-zone.png',
             gradient: 'from-blue-500 via-indigo-600 to-purple-600',
             accentColor: 'blue',
             glowColor: 'rgba(59,130,246,0.4)'
@@ -68,12 +71,12 @@ const Zones = () => {
         {
             id: 'pc',
             name: 'ПК Зона',
-            icon: <Monitor size={48} />,
+            icon: <GiPc size={48} />,
             tagline: 'Топовые игровые станции',
             description: '60 мощных игровых компьютеров с видеокартами RTX 4000 серии. Киберспортивные турниры, стримы и любые игры на максимальных настройках.',
             features: ['RTX 4070/4090', 'Intel Core i7/i9', '144Hz+ мониторы', 'Механические клавиатуры'],
             capacity: '60 мест',
-            imageUrl: '/zones/pc-zone.jpg',
+            imageUrl: '/zones/pc-zone.png',
             gradient: 'from-emerald-500 via-cyan-600 to-blue-600',
             accentColor: 'emerald',
             glowColor: 'rgba(16,185,129,0.4)'
@@ -81,12 +84,12 @@ const Zones = () => {
         {
             id: 'vip',
             name: 'VIP Комнаты',
-            icon: <Crown size={48} />,
+            icon: <RiVipLine size={48} />,
             tagline: 'Приватное пространство премиум-класса',
             description: '2 эксклюзивные комнаты с топовыми ПК на базе RTX 4090. Личный бар, караоке-система и полная приватность для твоей команды.',
             features: ['5 ПК RTX 4090', 'Приватная комната', 'Личный бар', 'Караоке-система'],
             capacity: '2 комнаты по 5 мест',
-            imageUrl: '/zones/vip-room.jpg',
+            imageUrl: '/zones/vip-zone.png',
             gradient: 'from-amber-500 via-orange-600 to-rose-600',
             accentColor: 'amber',
             glowColor: 'rgba(251,191,36,0.4)'
@@ -99,7 +102,7 @@ const Zones = () => {
             description: 'Освежись между игровыми сессиями. Энергетики, коктейли, снеки и полноценное меню. Барная стойка с киберпанк-дизайном.',
             features: ['Энергетики', 'Коктейли', 'Горячие напитки', 'Фастфуд меню'],
             capacity: 'Барная стойка',
-            imageUrl: '/zones/bar-zone.jpg',
+            imageUrl: '/zones/bar-zone.png',
             gradient: 'from-rose-500 via-pink-600 to-purple-600',
             accentColor: 'rose',
             glowColor: 'rgba(244,63,94,0.4)'
@@ -112,7 +115,7 @@ const Zones = () => {
             description: 'Комфортная зона отдыха с кальянами премиум-качества. Мягкие диваны, приглушенный свет и атмосфера для общения.',
             features: ['Премиум кальяны', 'Мягкие диваны', 'Заказ еды', 'Чилл-атмосфера'],
             capacity: 'Лаунж-зона',
-            imageUrl: '/zones/lounge-zone.jpg',
+            imageUrl: '/zones/lounge-zone.png',
             gradient: 'from-purple-500 via-violet-600 to-indigo-600',
             accentColor: 'purple',
             glowColor: 'rgba(168,85,247,0.4)'
@@ -125,7 +128,7 @@ const Zones = () => {
             description: 'Автоматы с напитками, снеками и всем необходимым. Мгновенный доступ к еде и напиткам в любое время.',
             features: ['Напитки', 'Снеки', 'Сладости', 'Доступно 24/7'],
             capacity: 'Вендинг-автоматы',
-            imageUrl: '/zones/vending-zone.jpg',
+            imageUrl: '/zones/vending-zone.png',
             gradient: 'from-cyan-500 via-teal-600 to-emerald-600',
             accentColor: 'cyan',
             glowColor: 'rgba(20,184,166,0.4)'
@@ -136,7 +139,7 @@ const Zones = () => {
 
     useEffect(() => {
         if (!isAutoPlay) return;
-        
+
         const interval = setInterval(() => {
             setActiveZone((prev) => (prev + 1) % zones.length);
         }, 5000);
@@ -160,7 +163,7 @@ const Zones = () => {
     };
 
     return (
-        <div className="relative bg-black py-20 px-4 overflow-hidden">
+        <div id='zones' className="relative bg-black py-20 px-4 overflow-hidden">
             {/* Animated Background */}
             <div className="absolute inset-0 opacity-30">
                 <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/20 via-purple-900/20 to-black" />
@@ -234,7 +237,7 @@ const Zones = () => {
                                         e.currentTarget.src = `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1920" height="800"%3E%3Cdefs%3E%3ClinearGradient id="grad" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23111827;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23000000;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill="url(%23grad)" width="1920" height="800"/%3E%3Ctext fill="%2322d3ee" font-family="Arial" font-size="48" font-weight="bold" x="50%25" y="45%25" text-anchor="middle" dominant-baseline="middle"%3E${currentZone.name}%3C/text%3E%3Ctext fill="%236B7280" font-family="Arial" font-size="24" x="50%25" y="55%25" text-anchor="middle" dominant-baseline="middle"%3E${currentZone.tagline}%3C/text%3E%3C/svg%3E`;
                                     }}
                                 />
-                                
+
                                 {/* Gradient Overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
@@ -266,7 +269,7 @@ const Zones = () => {
                                         transition={{ delay: 0.4 }}
                                         className="max-w-4xl"
                                     >
-                                        <h3 className="font-orbitron text-3xl md:text-5xl font-black mb-4">
+                                        <h3 className="font-orbitron text-3xl md:text-4xl font-black mb-4">
                                             <span className={`bg-gradient-to-r ${currentZone.gradient} bg-clip-text text-transparent`}>
                                                 {currentZone.tagline}
                                             </span>
@@ -310,11 +313,10 @@ const Zones = () => {
                                 whileTap={{ scale: 0.95 }}
                                 viewport={{ once: true }}
                                 onClick={() => goToZone(index)}
-                                className={`relative group overflow-hidden rounded-xl border-2 transition-all duration-300 ${
-                                    activeZone === index
+                                className={`relative group overflow-hidden rounded-xl border-2 transition-all duration-300 ${activeZone === index
                                         ? 'border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.5)]'
                                         : 'border-gray-700 hover:border-gray-500'
-                                }`}
+                                    }`}
                             >
                                 <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 relative">
                                     <img
@@ -326,7 +328,7 @@ const Zones = () => {
                                         }}
                                     />
                                     <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-all" />
-                                    
+
                                     <div className="absolute inset-0 flex flex-col items-center justify-center p-3">
                                         <div className={`text-${zone.accentColor}-400 mb-2 transform group-hover:scale-110 transition-transform`}>
                                             {zone.icon}
@@ -354,11 +356,10 @@ const Zones = () => {
                                 <motion.button
                                     key={index}
                                     onClick={() => goToZone(index)}
-                                    className={`h-2 rounded-full transition-all ${
-                                        activeZone === index
+                                    className={`h-2 rounded-full transition-all ${activeZone === index
                                             ? 'w-12 bg-gradient-to-r from-cyan-400 to-blue-400'
                                             : 'w-2 bg-gray-600 hover:bg-gray-500'
-                                    }`}
+                                        }`}
                                     whileHover={{ scale: 1.2 }}
                                     whileTap={{ scale: 0.9 }}
                                 />
@@ -369,11 +370,10 @@ const Zones = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setIsAutoPlay(!isAutoPlay)}
-                            className={`glass px-4 py-2 rounded-lg border-2 transition-all flex items-center gap-2 ${
-                                isAutoPlay
+                            className={`glass px-4 py-2 rounded-lg border-2 transition-all flex items-center gap-2 ${isAutoPlay
                                     ? 'border-cyan-400/50 bg-cyan-400/10'
                                     : 'border-gray-700 hover:border-gray-500'
-                            }`}
+                                }`}
                         >
                             <Play size={16} className={isAutoPlay ? 'text-cyan-400' : 'text-gray-400'} />
                             <span className="font-rajdhani text-sm text-white">

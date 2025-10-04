@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, Zap, Wifi, Cpu, Gamepad2, Shield, Users, Clock, Star } from 'lucide-react';
 import * as THREE from 'three';
@@ -68,163 +68,129 @@ const Hero: React.FC = () => {
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ 
-      canvas, 
-      alpha: true, 
-      antialias: false, // Отключаем для производительности
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: false,
       powerPreference: 'high-performance'
     });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Ограничиваем pixel ratio
-    renderer.shadowMap.enabled = false; // Отключаем тени для производительности
-    
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.shadowMap.enabled = false;
+
     camera.position.set(0, 0, 8);
     camera.lookAt(0, 0, 0);
 
     scene.fog = new THREE.Fog(0x000000, 8, 20);
 
-    // ОПТИМИЗИРОВАННОЕ ОСВЕЩЕНИЕ - меньше источников
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // УЛУЧШЕННОЕ ОСВЕЩЕНИЕ для видимости модели
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0x4488ff, 4);
-    keyLight.position.set(0, 8, 12);
+    const keyLight = new THREE.DirectionalLight(0x4488ff, 5);
+    keyLight.position.set(5, 10, 5);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x00ccff, 2);
-    rimLight.position.set(-8, 4, -2);
+    const rimLight = new THREE.DirectionalLight(0x00ccff, 3);
+    rimLight.position.set(-5, 5, -5);
     scene.add(rimLight);
 
-    // ОПТИМИЗИРОВАННАЯ СИСТЕМА ЧАСТИЦ - меньше частиц
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 1000; // Уменьшено с 3000
-    const posArray = new Float32Array(particlesCount * 3);
-    const colorArray = new Float32Array(particlesCount * 3);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 2);
+    fillLight.position.set(0, -5, 5);
+    scene.add(fillLight);
 
-    for (let i = 0; i < particlesCount * 3; i += 3) {
-      posArray[i] = (Math.random() - 0.5) * 30;
-      posArray[i + 1] = (Math.random() - 0.5) * 20;
-      posArray[i + 2] = (Math.random() - 0.5) * 15;
+    // СИНЕЕ СВЕЧЕНИЕ ЗА ПАУКОМ
+    const glowLight = new THREE.PointLight(0x3b82f6, 8, 30);
+    glowLight.position.set(3, -13.3, -3);
+    scene.add(glowLight);
 
-      const blueIntensity = 0.5 + Math.random() * 0.5;
-      colorArray[i] = 0;
-      colorArray[i + 1] = blueIntensity * 0.7;
-      colorArray[i + 2] = blueIntensity;
-    }
+    const glowLight2 = new THREE.PointLight(0x22d3ee, 6, 25);
+    glowLight2.position.set(3, -13.3, -2);
+    scene.add(glowLight2);
 
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-    particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
-
-    // Упрощенная текстура частиц
-    const canvas2d = document.createElement('canvas');
-    canvas2d.width = 16; // Уменьшено с 32
-    canvas2d.height = 16;
-    const ctx = canvas2d.getContext('2d');
-    if (ctx) {
-      const gradient = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 16, 16);
-    }
-    const particleTexture = new THREE.CanvasTexture(canvas2d);
-
-    const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.08,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.6,
-      blending: THREE.AdditiveBlending,
-      sizeAttenuation: true,
-      map: particleTexture,
-      depthWrite: false // Оптимизация
-    });
-
-    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-    scene.add(particlesMesh);
-
-    // Загрузка модели
+    // Загрузка модели с улучшенной обработкой
     const loader = new GLTFLoader();
     let actualModel: THREE.Object3D | null = null;
     let mixer: THREE.AnimationMixer | null = null;
     let animationAction: THREE.AnimationAction | null = null;
     const clock = new THREE.Clock();
 
-    const modelUrl = '/models/stormtrooper_captain_by_oscar_creativo.glb';
+    const modelUrl = '/models/spider/spiderman.glb';
 
     loader.load(
       modelUrl,
       (gltf) => {
         actualModel = gltf.scene;
 
-        actualModel.scale.set(4.5, 4.5, 4.5);
-        actualModel.position.set(2.7, -11.3, 0);
-        actualModel.rotation.y = -0.7;
+        console.log('Model loaded successfully');
 
-        // Оптимизация материалов
-        actualModel.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            child.castShadow = false;
-            child.receiveShadow = false;
+        // Центрируем модель
+        const box = new THREE.Box3().setFromObject(actualModel);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
 
-            if (child.material) {
-              const mat = child.material as THREE.MeshStandardMaterial;
-              mat.metalness = Math.min(mat.metalness + 0.3, 1);
-              mat.roughness = Math.max(mat.roughness - 0.2, 0.2);
-              mat.envMapIntensity = 2.5;
-
-              if (mat.color) {
-                mat.color.multiplyScalar(1.8);
-              }
-            }
-          }
+        console.log('Model info:', {
+          center: center,
+          size: size,
+          boundingBox: { min: box.min, max: box.max }
         });
 
+        // Перемещаем модель в центр координат
+        actualModel.position.x = -center.x;
+        actualModel.position.y = -center.y;
+        actualModel.position.z = -center.z;
+
+        // Масштабируем модель до подходящего размера
+        const maxSize = Math.max(size.x, size.y, size.z);
+        const targetSize = 16;
+        const scale = targetSize / maxSize;
+        actualModel.scale.set(scale, scale, scale);
+
+        // Позиционируем модель справа в поле зрения
+        actualModel.position.set(3, -13.3, 0);
+        actualModel.rotation.y = -0.3;
+
+        scene.add(actualModel);
+
+        // Инициализация анимации
         if (gltf.animations && gltf.animations.length > 0) {
           mixer = new THREE.AnimationMixer(actualModel);
           animationAction = mixer.clipAction(gltf.animations[0]);
-          animationAction.setDuration(15);
-          animationAction.setLoop(THREE.LoopRepeat, Infinity);
           animationAction.play();
+          console.log('Animation started:', gltf.animations[0].name);
+        } else {
+          console.log('No animations found in model');
         }
 
-        scene.add(actualModel);
+        console.log('Model added to scene:', {
+          position: actualModel.position,
+          scale: actualModel.scale,
+          boundingBox: size,
+          animationsCount: gltf.animations.length
+        });
       },
-      undefined,
-      (error) => {
-        console.error('Model load error:', error);
-      }
     );
 
-    // ОПТИМИЗИРОВАННАЯ АНИМАЦИЯ с adaptive frame rate
+    // ОПТИМИЗИРОВАННАЯ АНИМАЦИЯ
     let time = 0;
     let animationFrameId: number;
     let lastTime = performance.now();
     let frameCount = 0;
-    let fps = 60;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      
+
       const currentTime = performance.now();
       const deltaTime = currentTime - lastTime;
-      
-      // Считаем FPS
-      frameCount++;
-      if (frameCount % 60 === 0) {
-        fps = 1000 / (deltaTime || 16.67);
-      }
 
-      // Пропускаем кадры если FPS низкий
-      if (deltaTime < 16.67) { // 60 FPS
-        lastTime = currentTime;
+      if (deltaTime < 16.67) {
         return;
       }
 
       lastTime = currentTime;
       time += 0.01;
+      frameCount++;
 
       // Обновление анимации модели
       if (mixer && animationAction) {
@@ -240,22 +206,12 @@ const Hero: React.FC = () => {
       // Упрощенная анимация камеры
       camera.position.y = Math.sin(time * 0.5) * 0.1;
 
-      // Оптимизированная анимация частиц - обновляем реже
-      if (frameCount % 2 === 0) {
-        particlesMesh.rotation.y += 0.0003;
-        particlesMesh.rotation.x += 0.0001;
-        
-        const positions = particlesGeometry.attributes.position.array as Float32Array;
-        for (let i = 0; i < positions.length; i += 9) { // Обновляем каждую третью частицу
-          positions[i + 1] += Math.sin(time + i) * 0.002;
-        }
-        particlesGeometry.attributes.position.needsUpdate = true;
-      }
-
       // Упрощенная пульсация света
       if (frameCount % 3 === 0) {
-        keyLight.intensity = 4 + Math.sin(time * 2) * 0.5;
-        rimLight.intensity = 2 + Math.cos(time * 1.5) * 0.3;
+        keyLight.intensity = 5 + Math.sin(time * 2) * 0.5;
+        rimLight.intensity = 3 + Math.cos(time * 1.5) * 0.3;
+        glowLight.intensity = 8 + Math.sin(time * 1.8) * 2;
+        glowLight2.intensity = 6 + Math.cos(time * 1.5) * 1.5;
       }
 
       renderer.render(scene, camera);
@@ -263,7 +219,7 @@ const Hero: React.FC = () => {
 
     animate();
 
-    // Оптимизированный resize с debounce
+    // Оптимизированный resize
     let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
@@ -280,11 +236,6 @@ const Hero: React.FC = () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeout);
       cancelAnimationFrame(animationFrameId);
-      
-      // Очистка ресурсов
-      particlesGeometry.dispose();
-      particlesMaterial.dispose();
-      particleTexture.dispose();
       renderer.dispose();
     };
   }, []);
@@ -345,9 +296,18 @@ const Hero: React.FC = () => {
     <div className="relative bg-black">
       {/* HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat z-0"
+          style={{
+            backgroundImage: 'url(/background_hero.png)',
+            filter: 'brightness(0.6) blur(2.3px)',
+          }}
+        />
+
         {/* ЭПИЧНЫЙ ФОНОВЫЙ ТЕКСТ */}
-        <div className="absolute inset-0 flex items-center justify-start pl-0 md:pl-2 lg:pl-4 pointer-events-none z-0 overflow-hidden" style={{ perspective: '1000px' }}>
-          <div className="relative" style={{ transform: 'rotateY(35deg)', transformOrigin: 'left center' }}>
+        <div className="absolute inset-0 flex items-center justify-start pl-0 md:pl-2 lg:pl-4 pointer-events-none z-5 overflow-hidden" style={{ perspective: '1000px' }}>
+          <div className="relative w-full max-w-[85vw]" style={{ transform: 'rotateY(35deg)', transformOrigin: 'left center' }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.8, x: -50 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -355,7 +315,10 @@ const Hero: React.FC = () => {
               className="relative"
             >
               <div className="absolute inset-0 blur-3xl opacity-60">
-                <div className="text-[11vw] font-orbitron font-black text-left leading-[0.9] bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                <div 
+                  className="font-orbitron font-black text-left leading-[0.85] bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent"
+                  style={{ fontSize: 'clamp(8rem, 15vw, 28rem)' }}
+                >
                   RAVE<br />BY<br />CAYMAN
                 </div>
               </div>
@@ -369,8 +332,9 @@ const Hero: React.FC = () => {
                   ]
                 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="text-[12vw] font-orbitron font-black text-left leading-[0.9] bg-gradient-to-br from-cyan-300 via-blue-400 to-cyan-300 bg-clip-text text-transparent relative z-10"
+                className="font-orbitron font-black text-left leading-[0.85] bg-gradient-to-br from-cyan-300 via-blue-400 to-cyan-300 bg-clip-text text-transparent relative z-10"
                 style={{
+                  fontSize: 'clamp(8rem, 15vw, 28rem)',
                   WebkitTextStroke: '2px rgba(34,211,238,0.3)',
                 }}
               >
@@ -383,8 +347,9 @@ const Hero: React.FC = () => {
                   scale: [1, 1.02, 1],
                 }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 text-[12vw] font-orbitron font-black text-left leading-[0.9] bg-gradient-to-tr from-blue-500 via-cyan-400 to-blue-500 bg-clip-text text-transparent"
+                className="absolute inset-0 font-orbitron font-black text-left leading-[0.85] bg-gradient-to-tr from-blue-500 via-cyan-400 to-blue-500 bg-clip-text text-transparent"
                 style={{
+                  fontSize: 'clamp(8rem, 15vw, 28rem)',
                   WebkitTextStroke: '1px rgba(59,130,246,0.5)',
                 }}
               >
@@ -410,7 +375,7 @@ const Hero: React.FC = () => {
         <div
           className="absolute bottom-0 left-0 right-0 pointer-events-none z-30"
           style={{
-            height: '40%',
+            height: '30%',
             background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0) 100%)',
           }}
         />
@@ -418,7 +383,7 @@ const Hero: React.FC = () => {
         <div
           className="absolute top-0 left-0 right-0 pointer-events-none z-30"
           style={{
-            height: '30%',
+            height: '25%',
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
           }}
         />
@@ -499,6 +464,7 @@ const Hero: React.FC = () => {
               ))}
             </div>
           </motion.div>
+
           {/* Features */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -519,7 +485,7 @@ const Hero: React.FC = () => {
                   transition={{ delay: index * 0.15, duration: 0.6 }}
                   whileHover={{ scale: 1.08, y: -10 }}
                   viewport={{ once: true }}
-                  className="glass p-8 rounded-2xl border-2 border-cyan-400/30 hover:border-cyan-400 transition-all duration-300 text-center group cursor-pointer hover:shadow-[0_0_50px_rgba(34,211,238,0.6)]"
+                  className="glass p-8 rounded-2xl border-2 border-cyan-400/30 hover:border-cyan-400 transition-all duration-300 text-center group hover:shadow-[0_0_50px_rgba(34,211,238,0.6)]"
                 >
                   <div className="text-cyan-400 mb-6 inline-block group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
                     {feature.icon}
@@ -601,13 +567,11 @@ const Hero: React.FC = () => {
   background: linear-gradient(to bottom, #06b6d4, #2563eb);
 }
 
-/* Оптимизация для GPU */
 canvas {
   transform: translateZ(0);
   will-change: transform;
 }
 
-/* Оптимизация анимаций */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -615,7 +579,7 @@ canvas {
     transition-duration: 0.01ms !important;
   }
 }
-  `}</style>
+      `}</style>
     </div>
   );
 };

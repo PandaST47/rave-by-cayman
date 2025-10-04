@@ -11,6 +11,7 @@ import { Menu, X, LogIn, Gamepad2, Phone, Zap, Sparkles, TvMinimal } from 'lucid
  * - Throttling для scroll и mousemove событий
  * - Оптимизированные анимации
  * - Удаление неиспользуемых переменных
+ * - Навигация по якорям (anchor links)
  */
 
 interface NavItem {
@@ -38,6 +39,23 @@ const throttle = (func: Function, delay: number) => {
       func(...args);
     }
   };
+};
+
+// Функция для плавного скролла к секции
+const scrollToSection = (href: string) => {
+  const id = href.replace('#', '');
+  const element = document.getElementById(id);
+  
+  if (element) {
+    const headerOffset = 100; // Отступ для фиксированного хедера
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+  }
 };
 
 // Мемоизированный компонент логотипа
@@ -70,6 +88,7 @@ const NavButton = memo(({ item }: { item: NavItem }) => (
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      onClick={() => scrollToSection(item.href)}
       className="relative px-6 py-3 font-rajdhani font-bold text-white hover:text-blue-400 transition-all duration-300 flex items-center space-x-2 group"
     >
       <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/20 rounded-lg transition-all duration-300" />
@@ -175,9 +194,9 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems: NavItem[] = useMemo(() => [
-    { label: 'Зоны', href: '/zones', icon: <TvMinimal size={18} /> },
-    { label: 'Тарифы', href: '/tariffs', icon: <Gamepad2 size={18} /> },
-    { label: 'Контакты', href: '/contacts', icon: <Phone size={18} /> },
+    { label: 'Зоны', href: '#zones', icon: <TvMinimal size={18} /> },
+    { label: 'Тарифы', href: '#tariffs', icon: <Gamepad2 size={18} /> },
+    { label: 'Контакты', href: '#contacts', icon: <Phone size={18} /> },
   ], []);
 
   // Оптимизированный обработчик скролла с throttling
@@ -222,6 +241,11 @@ const Header: React.FC = () => {
   const closeMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(false);
   }, []);
+
+  const handleNavClick = useCallback((href: string) => {
+    scrollToSection(href);
+    closeMobileMenu();
+  }, [closeMobileMenu]);
 
   return (
     <>
@@ -340,7 +364,7 @@ const Header: React.FC = () => {
                       transition={{ delay: index * 0.1 }}
                     >
                       <button
-                        onClick={closeMobileMenu}
+                        onClick={() => handleNavClick(item.href)}
                         className="w-full px-5 py-4 flex items-center space-x-3 text-left font-rajdhani font-bold text-white hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/20 hover:border-blue-400/50 rounded-xl transition-all duration-300 group"
                         style={{
                           boxShadow: '0 0 20px rgba(59,130,246,0.2)',
@@ -503,6 +527,11 @@ const Header: React.FC = () => {
         .group, [class*="motion-"] {
           transform: translateZ(0);
           will-change: transform;
+        }
+
+        /* Плавный скролл для всей страницы */
+        html {
+          scroll-behavior: smooth;
         }
       `}</style>
     </>
