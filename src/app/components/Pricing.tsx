@@ -1,6 +1,8 @@
+// components/Pricing.tsx
+
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
     Cpu,
@@ -15,6 +17,8 @@ import {
 } from 'lucide-react';
 import { GiConsoleController, GiPc } from "react-icons/gi";
 import { BsHeadsetVr } from 'react-icons/bs';
+import { apiClient } from '@/lib/api-client';
+
 
 interface TariffZone {
     id: string;
@@ -210,11 +214,10 @@ const ZoneCard = ({
             viewport={{ once: true }}
             onClick={handleClick}
             disabled={isOccupied}
-            className={`relative glass p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 text-left ${
-                isSelected
-                    ? `${zone.borderColor} shadow-[0_0_40px_${zone.glowColor}]`
-                    : `border-gray-700 ${isOccupied ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-500'}`
-            }`}
+            className={`relative glass p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 text-left ${isSelected
+                ? `${zone.borderColor} shadow-[0_0_40px_${zone.glowColor}]`
+                : `border-gray-700 ${isOccupied ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-500'}`
+                }`}
             style={{
                 boxShadow: isSelected ? `0 0 40px ${zone.glowColor}` : 'none'
             }}
@@ -355,11 +358,10 @@ const TimeCalculator = ({
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => onHoursChange(h)}
-                        className={`py-2 rounded-lg font-rajdhani font-bold text-sm sm:text-base transition-all ${
-                            hours === h
-                                ? 'bg-gradient-to-r from-cyan-400 to-blue-400 text-black'
-                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
-                        }`}
+                        className={`py-2 rounded-lg font-rajdhani font-bold text-sm sm:text-base transition-all ${hours === h
+                            ? 'bg-gradient-to-r from-cyan-400 to-blue-400 text-black'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                            }`}
                     >
                         {h}ч
                     </motion.button>
@@ -393,8 +395,80 @@ const TimeCalculator = ({
 const Pricing = () => {
     const [selectedZone, setSelectedZone] = useState<string>('vr');
     const [hours, setHours] = useState<number>(2);
+    const [realZones, setRealZones] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const zones = useMemo(() => ZONES_DATA, []);
+    useEffect(() => {
+        loadZones();
+    }, []);
+
+    const loadZones = async () => {
+        try {
+            const data = await apiClient.getZones();
+            setRealZones(data.zones);
+        } catch (error) {
+            console.error('Failed to load zones:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const zones = useMemo(() => {
+        if (realZones.length === 0) return ZONES_DATA;
+
+        return ZONES_DATA.map(zone => {
+            const realZone = realZones.find(rz => rz.type === zone.id);
+            if (realZone) {
+                return {
+                    ...zone,
+                    totalSlots: realZone.totalSlots,
+                    occupiedSlots: realZone.occupiedSlots,
+                    prices: [{ perHour: realZone.pricePerHour }]
+                };
+            }
+            return zone;
+        });
+    }, [realZones]);
+
+    // Бронирование
+    const handleBooking = async () => {
+        try {
+            // Проверяем авторизацию
+            const profileData = await apiClient.getProfile();
+
+            if (!profileData.user) {
+                alert('Необходима авторизация для бронирования');
+                return;
+            }
+
+            const totalPrice = selectedZoneData.prices[0].perHour * hours;
+
+            // Проверяем баланс
+            if (profileData.user.balance < totalPrice) {
+                const confirm = window.confirm(
+                    `Недостаточно средств. На балансе: ${profileData.user.balance}₽, требуется: ${totalPrice}₽. Пополнить баланс?`
+                );
+                if (confirm) {
+                    // Открываем профиль на вкладке пополнения
+                    window.location.href = '/#profile?tab=balance';
+                }
+                return;
+            }
+
+            const startTime = new Date().toISOString();
+            await apiClient.createBooking(selectedZone, hours, startTime);
+
+            alert(`Бронирование успешно создано! Списано ${totalPrice}₽`);
+            loadZones(); // Обновить данные о доступности
+        } catch (error: any) {
+            if (error.message?.includes('Unauthorized') || error.message?.includes('авторизации')) {
+                alert('Необходима авторизация. Пожалуйста, войдите в аккаунт.');
+                // Можно добавить редирект на страницу логина или открыть модалку
+            } else {
+                alert(error.message || 'Ошибка бронирования');
+            }
+        }
+    };
 
     const selectedZoneData = useMemo(
         () => zones.find(z => z.id === selectedZone) || zones[0],
@@ -505,6 +579,7 @@ const Pricing = () => {
                             />
 
                             <motion.button
+                                onClick={handleBooking}
                                 whileHover={{ scale: 1.03, y: -3 }}
                                 whileTap={{ scale: 0.98 }}
                                 className={`w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-rajdhani font-black text-lg sm:text-xl text-white bg-gradient-to-r ${selectedZoneData.gradient} shadow-lg transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 group overflow-hidden relative`}

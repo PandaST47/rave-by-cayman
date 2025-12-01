@@ -14,9 +14,10 @@ import {
   AlertCircle,
   Loader2,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  Trophy
 } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
 
 interface UserProfile {
   id: string;
@@ -47,6 +48,14 @@ interface Booking {
   status: string;
 }
 
+interface Stats {
+  totalBookings: number;
+  totalHours: number;
+  totalSpent: number;
+  favoriteZone: string;
+  averageSession: number;
+}
+
 type Tab = 'balance' | 'bookings' | 'settings';
 
 const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -54,14 +63,17 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    totalBookings: 0,
+    totalHours: 0,
+    totalSpent: 0,
+    favoriteZone: 'Нет данных',
+    averageSession: 0
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Пополнение
   const [topUpAmount, setTopUpAmount] = useState<number>(1000);
   const [topUpLoading, setTopUpLoading] = useState(false);
-
-  // Смена пароля
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -70,20 +82,16 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-  const [stats, setStats] = useState({
-    totalBookings: 0,
-    totalHours: 0,
-    totalSpent: 0,
-    favoriteZone: '',
-    averageSession: 0
-  });
-
   const loadStats = async () => {
-    const response = await fetch('/api/user/stats', {
-      credentials: 'include'
-    });
-    const data = await response.json();
-    setStats(data);
+    try {
+      const response = await fetch('/api/user/stats', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
   };
 
   useEffect(() => {
@@ -94,7 +102,6 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   }, []);
 
   useEffect(() => {
-    // Блокировка скролла body
     document.body.style.overflow = 'hidden';
     document.body.style.paddingRight = `${window.innerWidth - document.documentElement.clientWidth}px`;
 
@@ -106,7 +113,8 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const loadProfile = async () => {
     try {
-      const data = await apiClient.getProfile();
+      const response = await fetch('/api/user/profile', { credentials: 'include' });
+      const data = await response.json();
       setUser(data.user);
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -117,8 +125,9 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const loadTransactions = async () => {
     try {
-      const data = await apiClient.getTransactions();
-      setTransactions(data.transactions);
+      const response = await fetch('/api/user/balance', { credentials: 'include' });
+      const data = await response.json();
+      setTransactions(data.transactions || []);
     } catch (error) {
       console.error('Failed to load transactions:', error);
     }
@@ -126,8 +135,9 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const loadBookings = async () => {
     try {
-      const data = await apiClient.getBookings();
-      setBookings(data.bookings);
+      const response = await fetch('/api/bookings', { credentials: 'include' });
+      const data = await response.json();
+      setBookings(data.bookings || []);
     } catch (error) {
       console.error('Failed to load bookings:', error);
     }
@@ -158,7 +168,6 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       const data = await response.json();
 
       if (data.success && data.paymentUrl) {
-        // Открыть окно оплаты
         window.location.href = data.paymentUrl;
       } else {
         throw new Error(data.error || 'Ошибка создания платежа');
@@ -194,8 +203,7 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
   };
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePasswordChange = async () => {
     setPasswordError('');
     setPasswordSuccess(false);
 
@@ -210,7 +218,7 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
 
     try {
-      await fetch('/api/user/change-password', {
+      const response = await fetch('/api/user/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -219,6 +227,12 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           newPassword: passwordData.newPassword
         })
       });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       setPasswordSuccess(true);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -229,7 +243,7 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const handleLogout = async () => {
     try {
-      await apiClient.logout();
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
@@ -289,56 +303,94 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl max-h-[90vh] bg-gray-900 rounded-2xl border-2 border-cyan-400/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] overflow-hidden"
+        className="relative w-full max-w-5xl max-h-[90vh] bg-gray-900 rounded-2xl border-2 border-cyan-400/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] overflow-hidden"
       >
         {/* Header */}
         <div className="relative p-6 border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            className="absolute top-4 right-4 p-2 hover:bg-gray-800 rounded-lg transition-colors z-10"
           >
             <X className="text-gray-400 hover:text-white" size={24} />
           </button>
 
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl">
-              <User size={32} className="text-white" />
-            </div>
-            <div>
-              <h2 className="font-orbitron text-2xl font-bold text-white">
-                {user.login}
-              </h2>
-              <p className="text-gray-400 font-rajdhani">{user.email}</p>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div>
-                <p className="text-sm text-gray-400 font-rajdhani">Баланс</p>
-                <p className="text-3xl font-orbitron font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  {user.balance}₽
-                </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* User Info */}
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl">
+                <User size={32} className="text-white" />
               </div>
+              <div>
+                <h2 className="font-orbitron text-2xl font-bold text-white">
+                  {user.login}
+                </h2>
+                <p className="text-gray-400 font-rajdhani">{user.email}</p>
+              </div>
+            </div>
+
+            {/* Balance & Actions */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl border border-cyan-400/30">
+                <Wallet className="text-cyan-400" size={24} />
+                <div>
+                  <p className="text-xs text-gray-400 font-rajdhani uppercase">Баланс</p>
+                  <p className="text-2xl font-orbitron font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    {user.balance}₽
+                  </p>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={refreshBalance}
+                  disabled={refreshing}
+                  className="p-2 bg-cyan-500/20 border border-cyan-400/50 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-all disabled:opacity-50"
+                >
+                  <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+                </motion.button>
+              </div>
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={refreshBalance}
-                disabled={refreshing}
-                className="p-2 bg-cyan-500/20 border border-cyan-400/50 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-all disabled:opacity-50"
+                onClick={handleLogout}
+                className="px-4 py-2 bg-rose-500/20 border-2 border-rose-400/50 rounded-lg text-rose-400 font-rajdhani font-bold hover:bg-rose-500/30 transition-all flex items-center gap-2"
               >
-                <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+                <LogOut size={18} />
+                <span className="hidden sm:inline">Выход</span>
               </motion.button>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLogout}
-              className="px-4 py-2 bg-rose-500/20 border-2 border-rose-400/50 rounded-lg text-rose-400 font-rajdhani font-bold hover:bg-rose-500/30 transition-all flex items-center gap-2"
-            >
-              <LogOut size={18} />
-              Выход
-            </motion.button>
+          </div>
+
+          {/* Stats Bar */}
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp size={16} className="text-cyan-400" />
+                <p className="text-xs text-gray-400 font-rajdhani">Бронирований</p>
+              </div>
+              <p className="text-xl font-orbitron font-bold text-white">{stats.totalBookings}</p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock size={16} className="text-blue-400" />
+                <p className="text-xs text-gray-400 font-rajdhani">Часов сыграно</p>
+              </div>
+              <p className="text-xl font-orbitron font-bold text-white">{stats.totalHours}</p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-1">
+                <Wallet size={16} className="text-emerald-400" />
+                <p className="text-xs text-gray-400 font-rajdhani">Потрачено</p>
+              </div>
+              <p className="text-xl font-orbitron font-bold text-white">{stats.totalSpent}₽</p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-1">
+                <Trophy size={16} className="text-amber-400" />
+                <p className="text-xs text-gray-400 font-rajdhani">Любимая зона</p>
+              </div>
+              <p className="text-sm font-rajdhani font-bold text-white truncate">{stats.favoriteZone}</p>
+            </div>
           </div>
         </div>
 
@@ -348,19 +400,20 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex-1 px-6 py-4 font-rajdhani font-bold transition-all flex items-center justify-center gap-2 ${activeTab === tab.id
-                ? 'bg-cyan-500/10 border-b-2 border-cyan-400 text-cyan-400'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                }`}
+              className={`flex-1 px-6 py-4 font-rajdhani font-bold transition-all flex items-center justify-center gap-2 ${
+                activeTab === tab.id
+                  ? 'bg-cyan-500/10 border-b-2 border-cyan-400 text-cyan-400'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+              }`}
             >
               <tab.icon size={20} />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-300px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-400px)]">
           <AnimatePresence mode="wait">
             {/* Баланс */}
             {activeTab === 'balance' && (
@@ -377,15 +430,16 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     Пополнить баланс
                   </h3>
 
-                  <div className="grid grid-cols-4 gap-3 mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     {quickAmounts.map((amount) => (
                       <button
                         key={amount}
                         onClick={() => setTopUpAmount(amount)}
-                        className={`py-3 rounded-lg font-rajdhani font-bold transition-all ${topUpAmount === amount
-                          ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                          }`}
+                        className={`py-3 rounded-lg font-rajdhani font-bold transition-all ${
+                          topUpAmount === amount
+                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                        }`}
                       >
                         {amount}₽
                       </button>
@@ -407,7 +461,7 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     whileTap={{ scale: 0.98 }}
                     onClick={handleTopUp}
                     disabled={topUpLoading}
-                    className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white font-rajdhani font-bold hover:from-cyan-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white font-rajdhani font-bold hover:from-cyan-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   >
                     {topUpLoading ? (
                       <Loader2 className="animate-spin mx-auto" size={24} />
@@ -501,8 +555,8 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         </div>
                         {booking.status === 'active' && new Date(booking.startTime) > new Date() && (
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => handleCancelBooking(booking.id)}
                             className="mt-3 w-full py-2 bg-rose-500/20 border border-rose-400/50 rounded-lg text-rose-400 font-rajdhani font-bold hover:bg-rose-500/30 transition-all"
                           >
@@ -528,7 +582,7 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
               >
-                <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="space-y-4">
                   <h3 className="font-orbitron text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <Lock size={20} className="text-cyan-400" />
                     Сменить пароль
@@ -559,7 +613,6 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg text-white focus:border-cyan-400 focus:outline-none font-rajdhani"
-                      required
                     />
                   </div>
 
@@ -572,8 +625,6 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg text-white focus:border-cyan-400 focus:outline-none font-rajdhani"
-                      required
-                      minLength={8}
                     />
                   </div>
 
@@ -586,20 +637,18 @@ const Profile: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg text-white focus:border-cyan-400 focus:outline-none font-rajdhani"
-                      required
-                      minLength={8}
                     />
                   </div>
 
                   <motion.button
-                    type="submit"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white font-rajdhani font-bold hover:from-cyan-600 hover:to-blue-600 transition-all"
+                    onClick={handlePasswordChange}
+                    className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white font-rajdhani font-bold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg"
                   >
                     Сменить пароль
                   </motion.button>
-                </form>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

@@ -20,7 +20,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Компьютерный клуб Rave By Cayman",
-  description: "Премиальный компьютерный клуб с топовым железом и лучшими консолями",
+  description: "Премиальный компьютерный клуб с топовым железом, лучшими консолями и VR зоной",
 };
 
 export default function RootLayout({

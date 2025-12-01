@@ -7,220 +7,180 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  PLAYER
-  ADMIN
-  OWNER
-}
-
-enum ZoneType {
-  VR
-  PS5
-  PC_BASIC
-  PC_PRO
-  PC_ULTRA
-  VIP_1
-  VIP_2
-}
-
-enum ZoneStatus {
-  AVAILABLE
-  OCCUPIED
-  RESERVED
-  MAINTENANCE
-}
-
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  CLOSED
-}
-
-enum TransactionStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  CANCELLED
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  ACTIVE
-  COMPLETED
-  CANCELLED
-}
-
+// Модель пользователя
 model User {
-  id            String    @id @default(cuid())
-  login         String    @unique
-  email         String    @unique
-  password      String
-  role          Role      @default(PLAYER)
-  balance       Float     @default(0)
-  isBlocked     Boolean   @default(false)
-  isVerified    Boolean   @default(false)
-  verificationToken String?
-  resetToken    String?
-  resetTokenExpiry DateTime?
-  registeredAt  DateTime  @default(now())
+  id             String   @id @default(cuid())
+  login          String   @unique
+  email          String   @unique
+  password       String
+  createdAt      DateTime @default(now())
   registrationIp String?
-  lastLoginAt   DateTime?
-  lastLoginIp   String?
-  
-  sessions      Session[]
-  loginHistory  LoginHistory[]
-  transactions  Transaction[]
-  tickets       Ticket[]
+  emailVerified  Boolean  @default(false)
+  isBlocked      Boolean  @default(false)
+  balance        Float    @default(0)
+  loyaltyPoints  Int      @default(0)
+  loyaltyTier    String   @default("bronze") // bronze, silver, gold, platinum
+
+  // Связи
+  sessions       Session[]
+  loginHistory   LoginHistory[]
+  transactions   Transaction[]
+  tickets        Ticket[]
   ticketMessages TicketMessage[]
-  bookings      Booking[]
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  bookings       Booking[]
+  activityLogs   ActivityLog[]
+  loyaltyRewards LoyaltyReward[]
 
-  @@index([email])
-  @@index([login])
+  @@map("users")
 }
 
+model LoyaltyReward {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  points    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([userId]) // ДОБАВИТЬ индекс для производительности
+  @@map("loyalty_rewards") // ДОБАВИТЬ mapping
+}
+
+// Модель сессии
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ip        String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
+// История входов
 model LoginHistory {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ip        String
   userAgent String?
-  success   Boolean
   createdAt DateTime @default(now())
-  
-  @@index([userId])
-  @@index([createdAt])
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("login_history")
 }
 
+// Транзакции пополнения
 model Transaction {
-  id          String            @id @default(cuid())
-  userId      String
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount      Float
-  type        String            // 'deposit', 'withdrawal', 'payment'
-  method      String?           // 'card', 'crypto', 'cash'
-  status      TransactionStatus @default(PENDING)
-  description String?
-  metadata    Json?
-  createdAt   DateTime          @default(now())
-  
-  @@index([userId])
-  @@index([createdAt])
-  @@index([status])
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Float
+  method    String // "yookassa", "card", "crypto", etc.
+  status    String   @default("pending") // "pending", "success", "cancelled"
+  details   String?  @db.Text // JSON с paymentId и другой информацией
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
 }
 
+// Тикеты поддержки
 model Ticket {
-  id          String        @id @default(cuid())
-  userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subject     String
-  category    String
-  status      TicketStatus  @default(OPEN)
-  priority    Int           @default(1)
-  assignedToId String?
-  messages    TicketMessage[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  closedAt    DateTime?
-  
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  category  String
+  status    String   @default("open") // "open", "in_progress", "closed"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages TicketMessage[]
+
+  @@map("tickets")
 }
 
+// Сообщения в тикетах
 model TicketMessage {
   id        String   @id @default(cuid())
   ticketId  String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   message   String   @db.Text
-  attachments Json?
   isStaff   Boolean  @default(false)
   createdAt DateTime @default(now())
-  
-  @@index([ticketId])
-  @@index([createdAt])
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ticket_messages")
 }
 
+// Зоны (VR, PS5, ПК и т.д.)
 model Zone {
-  id          String      @id @default(cuid())
-  type        ZoneType    @unique
-  name        String
-  description String?
-  totalSlots  Int
+  id           String  @id @default(cuid())
+  name         String  @unique
+  type         String // "vr", "ps5", "pc-basic", "pc-pro", "pc-ultra", "vip"
+  description  String
   pricePerHour Float
-  imageUrl    String?
-  isActive    Boolean     @default(true)
-  slots       Slot[]
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
+  totalSlots   Int
+  imageUrl     String?
+  isActive     Boolean @default(true)
 
-model Slot {
-  id        String      @id @default(cuid())
-  zoneId    String
-  zone      Zone        @relation(fields: [zoneId], references: [id], onDelete: Cascade)
-  slotNumber Int
-  status    ZoneStatus  @default(AVAILABLE)
+  computers Computer[]
   bookings  Booking[]
-  
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  
-  @@unique([zoneId, slotNumber])
-  @@index([zoneId])
-  @@index([status])
+
+  @@map("zones")
 }
 
+// Компьютеры/места
+model Computer {
+  id       String  @id @default(cuid())
+  zoneId   String
+  number   Int // номер компьютера в зоне
+  isActive Boolean @default(true)
+
+  zone     Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@unique([zoneId, number])
+  @@map("computers")
+}
+
+// Бронирования
 model Booking {
-  id          String        @id @default(cuid())
-  userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  slotId      String
-  slot        Slot          @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  startTime   DateTime
-  endTime     DateTime
-  hours       Int
-  totalPrice  Float
-  status      BookingStatus @default(PENDING)
-  paidAt      DateTime?
-  completedAt DateTime?
-  cancelledAt DateTime?
-  notes       String?
-  
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  @@index([userId])
-  @@index([slotId])
-  @@index([startTime])
-  @@index([status])
+  id         String   @id @default(cuid())
+  userId     String
+  zoneId     String
+  computerId String?
+  startTime  DateTime
+  endTime    DateTime
+  hours      Int
+  totalPrice Float
+  status     String   @default("active") // "active", "completed", "cancelled"
+  createdAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  zone     Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  computer Computer? @relation(fields: [computerId], references: [id])
+
+  @@map("bookings")
 }
 
-model SystemLog {
+// Логи действий (для безопасности)
+model ActivityLog {
   id        String   @id @default(cuid())
-  level     String   // 'info', 'warning', 'error'
-  action    String
   userId    String?
+  action    String // "register", "login", "logout", "top_up", "booking", etc.
+  details   String?  @db.Text
   ip        String?
-  metadata  Json?
   createdAt DateTime @default(now())
-  
-  @@index([createdAt])
-  @@index([level])
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
 }

@@ -4,16 +4,10 @@ import CursorTrail from '@/app/components/effects/CursorTrail';
 import Zones from '@/app/components/Zones';
 import Pricing from '@/app/components/Pricing';
 import Contacts from './components/Contacts';
+import { PaymentNotification } from './components/PaymentNotification';
 
 /**
  * Главная страница Rave By Cayman
- * 
- * Использование:
- * 1. Разместите Header.tsx в components/layout/
- * 2. Разместите Hero.tsx в components/hero/
- * 3. Разместите CursorTrail.tsx в components/effects/
- * 4. Убедитесь, что все зависимости установлены
- * 5. Tailwind config настроен по инструкции
  */
 
 export default function Home() {
@@ -25,6 +19,7 @@ export default function Home() {
       <Zones />
       <Pricing />
       <Contacts />
+      <PaymentNotification />
     </main>
   );
 }
